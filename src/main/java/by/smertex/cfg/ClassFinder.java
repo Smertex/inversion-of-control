@@ -2,28 +2,40 @@ package by.smertex.cfg;
 
 import by.smertex.exception.ComponentDirectoryIsEmpty;
 import by.smertex.exception.LoadComponentException;
+import by.smertex.interfaces.ClassFinderBasic;
+import by.smertex.utils.ClassUtil;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ClassFinder {
-     public static List<Class<?>> findComponents(String componentPath) {
-         List<String> paths = objectInDirectory(componentPath);
-         List<Class<?>> allClassInDirectory = paths.stream()
-                 .filter(line -> line.endsWith(".class"))
-                 .map(clazz -> pathToClass(mergeClassPath(componentPath, clazz)))
-                 .collect(Collectors.toList());
+public class ClassFinder implements ClassFinderBasic {
+    private List<Class<?>> allClassInProject;
 
-        paths.stream()
-                .filter(line -> !line.contains("."))
-                .forEach(directory -> allClassInDirectory.addAll(findComponents(pathMerging(componentPath, directory))));
+    public ClassFinder(String componentPath){
+        init(componentPath);
+    }
+
+    private void init(String componentPath){
+        allClassInProject = findClasses(componentPath);
+    }
+
+    @Override
+     public List<Class<?>> findClasses(String componentPath) {
+        List<String> objects = objectInDirectory(componentPath);
+        List<Class<?>> allClassInDirectory = findClassInDirectory(objects, componentPath);
+        allClassInDirectory.addAll(recursiveTraversal(objects, componentPath));
 
         return allClassInDirectory;
     }
 
-    private static List<String> objectInDirectory(String componentPath){
+    @Override
+    public List<Class<?>> getClasses() {
+        return allClassInProject;
+    }
+
+    private List<String> objectInDirectory(String componentPath){
         try(var stream = ClassLoader.getSystemClassLoader()
                 .getResourceAsStream(componentPath.replaceAll("[.]", "/"));
             var reader = new BufferedReader(new InputStreamReader(stream))){
@@ -32,29 +44,23 @@ public class ClassFinder {
 
         } catch (NullPointerException e) {
             throw new ComponentDirectoryIsEmpty(e);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new LoadComponentException(e);
         }
     }
 
-    private static String pathMerging(String rootPath, String appendableObject){
-        return rootPath + "." + appendableObject;
+    private List<Class<?>> findClassInDirectory(List<String> objects, String componentPath){
+         return objects.stream()
+                 .filter(line -> line.endsWith(".class"))
+                 .map(clazz -> ClassUtil.pathToClass(ClassFinderBasic.mergeClassPath(componentPath, clazz)))
+                 .collect(Collectors.toList());
     }
 
-    private static String mergeClassPath(String rootPath, String appendableObject){
-        return pathMerging(rootPath, appendableObject).replaceAll(".class", "");
-    }
-
-    private static Class<?> pathToClass(String componentPath){
-        try {
-            return Class.forName(componentPath);
-        } catch (ClassNotFoundException e) {
-            throw new LoadComponentException(e);
-        }
-    }
-
-    private ClassFinder(){
-
+    private List<Class<?>> recursiveTraversal(List<String> objects, String componentPath){
+         return objects.stream()
+                .filter(line -> !line.contains("."))
+                .map(directory -> findClasses(ClassFinderBasic.pathMerging(componentPath, directory)))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 }
