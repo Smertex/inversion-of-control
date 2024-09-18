@@ -3,23 +3,20 @@ package by.smertex.cfg;
 import by.smertex.annotation.ComponentScan;
 import by.smertex.annotation.Constructor;
 import by.smertex.annotation.Dependent;
-import by.smertex.annotation.NotSingleton;
 import by.smertex.exception.InitComponentInstanceException;
 import by.smertex.interfaces.ApplicationContextBasic;
 import by.smertex.interfaces.ComponentManagerBasic;
 import by.smertex.utils.ClassUtil;
+import by.smertex.utils.ClassValidators;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 
 public class ApplicationContext implements ApplicationContextBasic {
     private Object configurationClass;
     private ComponentManagerBasic componentManagerBasic;
 
     public ApplicationContext(Object configurationClass){
-        ClassUtil.validationConfigurationClass(configurationClass);
+        ClassValidators.validationConfigurationClass(configurationClass);
         initApplicationContext(configurationClass);
         initComponents();
         initDependency();
@@ -33,14 +30,21 @@ public class ApplicationContext implements ApplicationContextBasic {
 
     private void initComponents(){
         var components = componentManagerBasic.getComponentPool();
-        Set<Class<?>> objectKeysToCreateInConfig = new HashSet<>();
 
-        for(Class<?> clazz: components.keySet()){
-            if(!ClassUtil.hasNoOrdinaryConstructor(clazz))
-                components.put(clazz, createInstanceFromBasicConstructor(clazz));
-            else objectKeysToCreateInConfig.add(clazz);
+        components.keySet().stream()
+                .filter(clazz -> !ClassValidators.hasNoOrdinaryConstructor(clazz))
+                .filter(ClassValidators::validationSingletonClass)
+                .forEach(clazz -> components.put(clazz, createInstanceFromBasicConstructor(clazz)));
+        components.keySet().stream()
+                .filter(ClassValidators::hasNoOrdinaryConstructor)
+                .filter(ClassValidators::validationSingletonClass)
+                .forEach(clazz -> components.put(clazz, creatingInstanceFromConfig(clazz)));
+    }
+
+    private void initDependency(){
+        for(Object component: componentManagerBasic.getComponentPool().values()){
+            if(component != null) inject(component);
         }
-        for(Class<?> clazz: objectKeysToCreateInConfig) components.put(clazz, creatingInstanceFromConfig(clazz));
     }
 
     private Object creatingInstanceFromConfig(Class<?> clazz){
@@ -51,29 +55,11 @@ public class ApplicationContext implements ApplicationContextBasic {
                 .findFirst();
 
         if(object.isEmpty()) throw new InitComponentInstanceException(new RuntimeException());
-
         return object.get();
     }
 
     private Object createInstanceFromBasicConstructor(Class<?> clazz){
-        if(clazz.getDeclaredAnnotation(NotSingleton.class) != null) return null;
         return ClassUtil.createNewInstance(clazz);
-    }
-
-    private Object getNotSingletonComponent(Class<?> clazz){
-        Object object;
-        if(!ClassUtil.hasNoOrdinaryConstructor(clazz))
-            object = createInstanceFromBasicConstructor(clazz);
-        else object = createInstanceFromBasicConstructor(clazz);
-
-        inject(object);
-        return object;
-    }
-
-    private void initDependency(){
-        for(Object component: componentManagerBasic.getComponentPool().values()){
-            if(component != null) inject(component);
-        }
     }
 
     @Override
@@ -85,14 +71,17 @@ public class ApplicationContext implements ApplicationContextBasic {
                                                           field));
     }
 
+    private Object getNotSingletonComponent(Class<?> clazz){
+        Object object = !ClassValidators.hasNoOrdinaryConstructor(clazz) ?
+                createInstanceFromBasicConstructor(clazz): creatingInstanceFromConfig(clazz);
+        inject(object);
+        return object;
+    }
+
     @Override
     public Object getComponent(Class<?> clazz) {
         var component = componentManagerBasic.getComponent(clazz);
-        if(component == null) return getNotSingletonComponent(clazz);
-        return componentManagerBasic.getComponent(clazz);
-    }
-
-    public ComponentManagerBasic getComponentManagerBasic(){
-        return componentManagerBasic;
+        return component == null ?
+                getNotSingletonComponent(clazz) : component;
     }
 }
