@@ -1,23 +1,18 @@
 package by.smertex.cfg;
 
 import by.smertex.annotation.Component;
-import by.smertex.annotation.Dependent;
-import by.smertex.exception.InitComponentInstanceException;
-import by.smertex.interfaces.ClassFinderBasic;
-import by.smertex.interfaces.ComponentManagerBasic;
+import by.smertex.interfaces.ClassFinder;
+import by.smertex.interfaces.ComponentManager;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ComponentManager implements ComponentManagerBasic {
+public class ComponentManagerBasicRealisation implements ComponentManager {
     private final Map<Class<?>, Object> componentsPool = new HashMap<>();
-    private final ClassFinderBasic classFinder;
+    private final ClassFinder classFinder;
 
-    public ComponentManager(ClassFinderBasic classFinder) {
+    public ComponentManagerBasicRealisation(ClassFinder classFinder) {
         this.classFinder = classFinder;
         init();
     }

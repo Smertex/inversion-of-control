@@ -3,20 +3,19 @@ package by.smertex.cfg;
 import by.smertex.annotation.ComponentScan;
 import by.smertex.annotation.Constructor;
 import by.smertex.annotation.Dependent;
-import by.smertex.interfaces.ApplicationContextBasic;
-import by.smertex.interfaces.ComponentManagerBasic;
+import by.smertex.interfaces.ApplicationContext;
+import by.smertex.interfaces.ComponentManager;
 import by.smertex.utils.ClassUtil;
 import by.smertex.utils.ClassValidators;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Optional;
 
-public class ApplicationContext implements ApplicationContextBasic {
+public class ApplicationContextBasicRealisation implements ApplicationContext {
     private Object configurationClass;
-    private ComponentManagerBasic componentManagerBasic;
+    private ComponentManager componentManager;
 
-    public ApplicationContext(Object configurationClass){
+    public ApplicationContextBasicRealisation(Object configurationClass){
         ClassValidators.validationConfigurationClass(configurationClass);
         initApplicationContext(configurationClass);
         initComponents();
@@ -25,12 +24,12 @@ public class ApplicationContext implements ApplicationContextBasic {
 
     private void initApplicationContext(Object configurationClass){
         String path = configurationClass.getClass().getDeclaredAnnotation(ComponentScan.class).path();
-        componentManagerBasic = new ComponentManager(new ClassFinder(path));
+        componentManager = new ComponentManagerBasicRealisation(new ClassFinderBasicRealisation(path));
         this.configurationClass = configurationClass;
     }
 
     private void initComponents(){
-        Map<Class<?>, Object> components = componentManagerBasic.getComponentPool();
+        Map<Class<?>, Object> components = componentManager.getComponentPool();
         components.keySet()
                 .forEach(clazz -> components.put(clazz, !ClassValidators.hasNoOrdinaryConstructor(clazz) ?
                         createInstanceFromBasicConstructor(clazz) : creatingInstanceFromConfig(clazz)
@@ -38,7 +37,7 @@ public class ApplicationContext implements ApplicationContextBasic {
     }
 
     private void initDependency(){
-        for(Object component: componentManagerBasic.getComponentPool().values())
+        for(Object component: componentManager.getComponentPool().values())
             if(component != null) inject(component);
 
     }
@@ -75,7 +74,7 @@ public class ApplicationContext implements ApplicationContextBasic {
 
     @Override
     public Object getComponent(Class<?> clazz) {
-        Object component = componentManagerBasic.getComponent(clazz);
+        Object component = componentManager.getComponent(clazz);
         return component == null ?
                 getNotSingletonComponent(clazz) : component;
     }

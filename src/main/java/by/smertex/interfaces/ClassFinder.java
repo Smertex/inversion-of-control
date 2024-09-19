@@ -1,10 +1,8 @@
 package by.smertex.interfaces;
 
-import by.smertex.exception.LoadComponentException;
-
 import java.util.List;
 
-public interface ClassFinderBasic {
+public interface ClassFinder {
     List<Class<?>> findClasses(String componentPath);
     List<Class<?>> getClasses();
 

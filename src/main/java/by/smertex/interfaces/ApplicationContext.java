@@ -1,8 +1,6 @@
 package by.smertex.interfaces;
 
-import java.util.List;
-
-public interface ApplicationContextBasic {
+public interface ApplicationContext {
     Object getComponent(Class<?> clazz);
     void inject(Object component);
 }

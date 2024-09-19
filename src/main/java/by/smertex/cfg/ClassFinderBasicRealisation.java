@@ -2,7 +2,7 @@ package by.smertex.cfg;
 
 import by.smertex.exception.ComponentDirectoryIsEmpty;
 import by.smertex.exception.LoadComponentException;
-import by.smertex.interfaces.ClassFinderBasic;
+import by.smertex.interfaces.ClassFinder;
 import by.smertex.utils.ClassUtil;
 
 import java.io.*;
@@ -10,10 +10,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ClassFinder implements ClassFinderBasic {
+public class ClassFinderBasicRealisation implements ClassFinder {
     private List<Class<?>> allClassInProject;
 
-    public ClassFinder(String componentPath){
+    public ClassFinderBasicRealisation(String componentPath){
         init(componentPath);
     }
 
@@ -52,14 +52,14 @@ public class ClassFinder implements ClassFinderBasic {
     private List<Class<?>> findClassInDirectory(List<String> objects, String componentPath){
          return objects.stream()
                  .filter(line -> line.endsWith(".class"))
-                 .map(clazz -> ClassUtil.pathToClass(ClassFinderBasic.mergeClassPath(componentPath, clazz)))
+                 .map(clazz -> ClassUtil.pathToClass(ClassFinder.mergeClassPath(componentPath, clazz)))
                  .collect(Collectors.toList());
     }
 
     private List<Class<?>> recursiveTraversal(List<String> objects, String componentPath){
          return objects.stream()
                 .filter(line -> !line.contains("."))
-                .map(directory -> findClasses(ClassFinderBasic.pathMerging(componentPath, directory)))
+                .map(directory -> findClasses(ClassFinder.pathMerging(componentPath, directory)))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
