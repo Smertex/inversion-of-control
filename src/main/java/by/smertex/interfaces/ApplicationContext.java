@@ -11,6 +11,7 @@ import java.lang.reflect.Constructor;
 
 public interface ApplicationContext {
     Object getComponent(Class<?> clazz);
+
     void inject(Object component);
 
     static void validationConfigurationClass(Object configurationClass){

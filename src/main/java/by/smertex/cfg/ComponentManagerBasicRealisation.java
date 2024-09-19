@@ -1,6 +1,5 @@
 package by.smertex.cfg;
 
-import by.smertex.annotation.Component;
 import by.smertex.interfaces.ClassFinder;
 import by.smertex.interfaces.ComponentManager;
 
@@ -20,7 +19,7 @@ public class ComponentManagerBasicRealisation implements ComponentManager {
     private void init() {
         List<Class<?>> classesInProject = classFinder.getClasses();
         classesInProject.stream()
-                .filter(clazz -> clazz.getDeclaredAnnotation(Component.class) != null)
+                .filter(ComponentManager::isComponentClass)
                 .forEach(clazz -> componentsPool.put(clazz, null));
     }
 

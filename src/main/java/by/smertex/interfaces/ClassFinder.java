@@ -4,6 +4,7 @@ import java.util.List;
 
 public interface ClassFinder {
     List<Class<?>> findClasses(String componentPath);
+
     List<Class<?>> getClasses();
 
     static String pathMerging(String rootPath, String appendableObject){
