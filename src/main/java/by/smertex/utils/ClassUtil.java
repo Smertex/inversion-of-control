@@ -7,13 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ClassUtil {
-    public static Class<?> pathToClass(String componentPath){
-        try {
-            return Class.forName(componentPath);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static Object invokeExceptionHandler(Object object, Method method){
         try {

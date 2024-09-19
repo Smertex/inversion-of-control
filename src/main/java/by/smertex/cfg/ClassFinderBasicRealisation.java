@@ -3,7 +3,6 @@ package by.smertex.cfg;
 import by.smertex.exception.ComponentDirectoryIsEmpty;
 import by.smertex.exception.LoadComponentException;
 import by.smertex.interfaces.ClassFinder;
-import by.smertex.utils.ClassUtil;
 
 import java.io.*;
 import java.util.Collection;
@@ -52,7 +51,7 @@ public class ClassFinderBasicRealisation implements ClassFinder {
     private List<Class<?>> findClassInDirectory(List<String> objects, String componentPath){
          return objects.stream()
                  .filter(line -> line.endsWith(".class"))
-                 .map(clazz -> ClassUtil.pathToClass(ClassFinder.mergeClassPath(componentPath, clazz)))
+                 .map(clazz -> ClassFinder.pathToClass(ClassFinder.mergeClassPath(componentPath, clazz)))
                  .collect(Collectors.toList());
     }
 

@@ -7,6 +7,14 @@ public interface ClassFinder {
 
     List<Class<?>> getClasses();
 
+    static Class<?> pathToClass(String componentPath){
+        try {
+            return Class.forName(componentPath);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     static String pathMerging(String rootPath, String appendableObject){
         return rootPath + "." + appendableObject;
     }
