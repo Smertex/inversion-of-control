@@ -3,13 +3,14 @@ package by.smertex.cfg;
 import by.smertex.annotation.ComponentScan;
 import by.smertex.annotation.Constructor;
 import by.smertex.annotation.Dependent;
-import by.smertex.exception.InitComponentInstanceException;
 import by.smertex.interfaces.ApplicationContextBasic;
 import by.smertex.interfaces.ComponentManagerBasic;
 import by.smertex.utils.ClassUtil;
 import by.smertex.utils.ClassValidators;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 
 public class ApplicationContext implements ApplicationContextBasic {
     private Object configurationClass;
@@ -29,33 +30,27 @@ public class ApplicationContext implements ApplicationContextBasic {
     }
 
     private void initComponents(){
-        var components = componentManagerBasic.getComponentPool();
-
-        components.keySet().stream()
-                .filter(clazz -> !ClassValidators.hasNoOrdinaryConstructor(clazz))
-                .filter(ClassValidators::validationSingletonClass)
-                .forEach(clazz -> components.put(clazz, createInstanceFromBasicConstructor(clazz)));
-        components.keySet().stream()
-                .filter(ClassValidators::hasNoOrdinaryConstructor)
-                .filter(ClassValidators::validationSingletonClass)
-                .forEach(clazz -> components.put(clazz, creatingInstanceFromConfig(clazz)));
+        Map<Class<?>, Object> components = componentManagerBasic.getComponentPool();
+        components.keySet()
+                .forEach(clazz -> components.put(clazz, !ClassValidators.hasNoOrdinaryConstructor(clazz) ?
+                        createInstanceFromBasicConstructor(clazz) : creatingInstanceFromConfig(clazz)
+                ));
     }
 
     private void initDependency(){
-        for(Object component: componentManagerBasic.getComponentPool().values()){
+        for(Object component: componentManagerBasic.getComponentPool().values())
             if(component != null) inject(component);
-        }
+
     }
 
     private Object creatingInstanceFromConfig(Class<?> clazz){
-        var object = Arrays.stream(configurationClass.getClass().getDeclaredMethods())
+        return Arrays.stream(configurationClass.getClass().getDeclaredMethods())
                 .filter(method -> method.getDeclaredAnnotation(Constructor.class) != null)
                 .filter(method -> method.getReturnType().equals(clazz))
                 .map(method -> ClassUtil.invokeExceptionHandler(configurationClass, method))
-                .findFirst();
-
-        if(object.isEmpty()) throw new InitComponentInstanceException(new RuntimeException());
-        return object.get();
+                .peek(ClassValidators::validationComponentInstance)
+                .findFirst()
+                .get();
     }
 
     private Object createInstanceFromBasicConstructor(Class<?> clazz){
@@ -80,7 +75,7 @@ public class ApplicationContext implements ApplicationContextBasic {
 
     @Override
     public Object getComponent(Class<?> clazz) {
-        var component = componentManagerBasic.getComponent(clazz);
+        Object component = componentManagerBasic.getComponent(clazz);
         return component == null ?
                 getNotSingletonComponent(clazz) : component;
     }
