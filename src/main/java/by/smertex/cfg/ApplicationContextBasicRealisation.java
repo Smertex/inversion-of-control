@@ -6,7 +6,6 @@ import by.smertex.annotation.Dependent;
 import by.smertex.interfaces.ApplicationContext;
 import by.smertex.interfaces.ComponentManager;
 import by.smertex.utils.ClassUtil;
-import by.smertex.utils.ClassValidators;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -16,7 +15,7 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     private ComponentManager componentManager;
 
     public ApplicationContextBasicRealisation(Object configurationClass){
-        ClassValidators.validationConfigurationClass(configurationClass);
+        ApplicationContext.validationConfigurationClass(configurationClass);
         initApplicationContext(configurationClass);
         initComponents();
         initDependency();
@@ -31,8 +30,8 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     private void initComponents(){
         Map<Class<?>, Object> components = componentManager.getComponentPool();
         components.keySet().stream()
-                .filter(ClassValidators::validationSingletonClass)
-                .forEach(clazz -> components.put(clazz, !ClassValidators.hasNoOrdinaryConstructor(clazz) ?
+                .filter(ApplicationContext::validationSingletonClass)
+                .forEach(clazz -> components.put(clazz, !ApplicationContext.hasNoOrdinaryConstructor(clazz) ?
                         createInstanceFromBasicConstructor(clazz) : creatingInstanceFromConfig(clazz)
                 ));
     }
@@ -47,7 +46,7 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
                 .filter(method -> method.getDeclaredAnnotation(Constructor.class) != null)
                 .filter(method -> method.getReturnType().equals(clazz))
                 .map(method -> ClassUtil.invokeExceptionHandler(configurationClass, method))
-                .peek(ClassValidators::validationComponentInstance)
+                .peek(ApplicationContext::validationComponentInstance)
                 .findFirst()
                 .get();
     }
@@ -66,7 +65,7 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     }
 
     private Object getNotSingletonComponent(Class<?> clazz){
-        Object object = !ClassValidators.hasNoOrdinaryConstructor(clazz) ?
+        Object object = !ApplicationContext.hasNoOrdinaryConstructor(clazz) ?
                 createInstanceFromBasicConstructor(clazz): creatingInstanceFromConfig(clazz);
         inject(object);
         return object;
