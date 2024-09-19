@@ -30,7 +30,8 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
 
     private void initComponents(){
         Map<Class<?>, Object> components = componentManager.getComponentPool();
-        components.keySet()
+        components.keySet().stream()
+                .filter(ClassValidators::validationSingletonClass)
                 .forEach(clazz -> components.put(clazz, !ClassValidators.hasNoOrdinaryConstructor(clazz) ?
                         createInstanceFromBasicConstructor(clazz) : creatingInstanceFromConfig(clazz)
                 ));
@@ -39,7 +40,6 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     private void initDependency(){
         for(Object component: componentManager.getComponentPool().values())
             if(component != null) inject(component);
-
     }
 
     private Object creatingInstanceFromConfig(Class<?> clazz){

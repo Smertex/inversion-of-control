@@ -8,7 +8,6 @@ import by.smertex.exception.InitComponentInstanceException;
 import by.smertex.exception.NotConfigurationClass;
 
 import java.lang.reflect.Constructor;
-import java.util.Optional;
 
 public class ClassValidators {
     public static void validationConfigurationClass(Object configurationClass){
