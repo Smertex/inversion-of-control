@@ -21,7 +21,10 @@ public class ConfigurationClassManagerBasicRealisation implements ConfigurationC
     private void readConfigurationClass(){
         Arrays.stream(configurationClass.getClass().getDeclaredMethods())
                 .filter(method -> method.getDeclaredAnnotation(Constructor.class) != null)
-                .forEach(method -> constructorMethods.put(method.getReturnType(), method));
+                .forEach(method -> {
+                    if(constructorMethods.containsKey(method.getReturnType())) ConfigurationClassManager.configurationRepeatingMethod();
+                    constructorMethods.put(method.getReturnType(), method);
+                });
     }
 
     @Override
