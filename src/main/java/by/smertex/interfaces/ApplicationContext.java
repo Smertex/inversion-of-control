@@ -8,6 +8,9 @@ import by.smertex.exception.InitComponentInstanceException;
 import by.smertex.exception.NotConfigurationClass;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Optional;
 
 public interface ApplicationContext {
     Object getComponent(Class<?> clazz);
@@ -22,14 +25,11 @@ public interface ApplicationContext {
             throw new ComponentScanNotFound(new RuntimeException());
     }
 
-    static boolean validationSingletonClass(Class<?> clazz){
-        return clazz.getDeclaredAnnotation(NotSingleton.class) == null;
-    }
-
-    static Boolean hasNoOrdinaryConstructor(Class<?> clazz){
-        for(Constructor<?> constructor: clazz.getConstructors())
-            if(constructor.getParameterCount() > 0) return true;
-        return false;
+    static Optional<Method> findMethodForCreateInstanceInCfg(Class<?> clazz, Object cfg){
+        return Arrays.stream(cfg.getClass().getDeclaredMethods())
+                .filter(method -> method.getDeclaredAnnotation(by.smertex.annotation.Constructor.class) != null)
+                .filter(method -> method.getReturnType().equals(clazz))
+                .findFirst();
     }
 
     static void validationComponentInstance(Object object){

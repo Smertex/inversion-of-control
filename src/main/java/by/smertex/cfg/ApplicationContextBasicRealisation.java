@@ -1,18 +1,22 @@
 package by.smertex.cfg;
 
 import by.smertex.annotation.ComponentScan;
-import by.smertex.annotation.Constructor;
 import by.smertex.annotation.Dependent;
+import by.smertex.annotation.NotSingleton;
 import by.smertex.interfaces.ApplicationContext;
 import by.smertex.interfaces.ComponentManager;
+import by.smertex.interfaces.ConfigurationClassManager;
 import by.smertex.utils.ClassUtil;
 
 import java.util.Arrays;
 import java.util.Map;
 
+
 public class ApplicationContextBasicRealisation implements ApplicationContext {
-    private Object configurationClass;
+
     private ComponentManager componentManager;
+
+    private ConfigurationClassManager configurationClassManager;
 
     public ApplicationContextBasicRealisation(Object configurationClass){
         ApplicationContext.validationConfigurationClass(configurationClass);
@@ -24,16 +28,15 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     private void initApplicationContext(Object configurationClass){
         String path = configurationClass.getClass().getDeclaredAnnotation(ComponentScan.class).path();
         componentManager = new ComponentManagerBasicRealisation(new ClassFinderBasicRealisation(path));
-        this.configurationClass = configurationClass;
+        this.configurationClassManager = new ConfigurationClassManagerBasicRealisation(configurationClass);
     }
 
     private void initComponents(){
         Map<Class<?>, Object> components = componentManager.getComponentPool();
+
         components.keySet().stream()
-                .filter(ApplicationContext::validationSingletonClass)
-                .forEach(clazz -> components.put(clazz, !ApplicationContext.hasNoOrdinaryConstructor(clazz) ?
-                        createInstanceFromBasicConstructor(clazz) : creatingInstanceFromConfig(clazz)
-                ));
+                .filter(clazz -> clazz.getDeclaredAnnotation(NotSingleton.class) == null)
+                .forEach(clazz -> components.put(clazz, createInstance(clazz)));
     }
 
     private void initDependency(){
@@ -41,18 +44,11 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
             if(component != null) inject(component);
     }
 
-    private Object creatingInstanceFromConfig(Class<?> clazz){
-        return Arrays.stream(configurationClass.getClass().getDeclaredMethods())
-                .filter(method -> method.getDeclaredAnnotation(Constructor.class) != null)
-                .filter(method -> method.getReturnType().equals(clazz))
-                .map(method -> ClassUtil.invokeExceptionHandler(configurationClass, method))
-                .peek(ApplicationContext::validationComponentInstance)
-                .findFirst()
-                .get();
-    }
-
-    private Object createInstanceFromBasicConstructor(Class<?> clazz){
-        return ClassUtil.createNewInstance(clazz);
+    private Object createInstance(Class<?> clazz){
+        return configurationClassManager.getConstructorMethod(clazz) != null ?
+                ClassUtil.invokeExceptionHandler(configurationClassManager.getConfigurationClass(),
+                        configurationClassManager.getConstructorMethod(clazz))
+                : ClassUtil.createNewInstance(clazz);
     }
 
     @Override
@@ -65,8 +61,7 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     }
 
     private Object getNotSingletonComponent(Class<?> clazz){
-        Object object = !ApplicationContext.hasNoOrdinaryConstructor(clazz) ?
-                createInstanceFromBasicConstructor(clazz): creatingInstanceFromConfig(clazz);
+        Object object = createInstance(clazz);
         inject(object);
         return object;
     }

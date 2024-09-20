@@ -8,9 +8,9 @@ import java.lang.reflect.Method;
 
 public class ClassUtil {
 
-    public static Object invokeExceptionHandler(Object object, Method method){
+    public static Object invokeExceptionHandler(Object configurationClass, Method method){
         try {
-            return method.invoke(object);
+            return method.invoke(configurationClass);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new CreateInstanceInCfgException(e);
         }
