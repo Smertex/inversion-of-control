@@ -32,7 +32,6 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
 
     private void initComponents(){
         Map<Class<?>, Object> components = componentManager.getComponentPool();
-
         components.keySet().stream()
                 .filter(clazz -> clazz.getDeclaredAnnotation(NotSingleton.class) == null)
                 .forEach(clazz -> components.put(clazz, createInstance(clazz)));
@@ -46,8 +45,7 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     private Object createInstance(Class<?> clazz){
         return configurationClassManager.getConstructorMethod(clazz) != null ?
                 ApplicationContext.invokeCfgMethod(configurationClassManager.getConfigurationClass(),
-                        configurationClassManager.getConstructorMethod(clazz))
-                : ApplicationContext.createNewInstance(clazz);
+                        configurationClassManager.getConstructorMethod(clazz)) : ApplicationContext.createNewInstance(clazz);
     }
 
     @Override
