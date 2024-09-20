@@ -2,12 +2,9 @@ package by.smertex.interfaces;
 
 import by.smertex.annotation.ComponentScan;
 import by.smertex.annotation.Configuration;
-import by.smertex.annotation.NotSingleton;
 import by.smertex.exception.ComponentScanNotFound;
-import by.smertex.exception.InitComponentInstanceException;
 import by.smertex.exception.NotConfigurationClass;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
@@ -30,9 +27,5 @@ public interface ApplicationContext {
                 .filter(method -> method.getDeclaredAnnotation(by.smertex.annotation.Constructor.class) != null)
                 .filter(method -> method.getReturnType().equals(clazz))
                 .findFirst();
-    }
-
-    static void validationComponentInstance(Object object){
-        if(object == null) throw new InitComponentInstanceException(new RuntimeException());
     }
 }

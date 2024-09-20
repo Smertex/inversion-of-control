@@ -27,7 +27,7 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
 
     private void initApplicationContext(Object configurationClass){
         String path = configurationClass.getClass().getDeclaredAnnotation(ComponentScan.class).path();
-        componentManager = new ComponentManagerBasicRealisation(new ClassFinderBasicRealisation(path));
+        this.componentManager = new ComponentManagerBasicRealisation(new ClassFinderBasicRealisation(path));
         this.configurationClassManager = new ConfigurationClassManagerBasicRealisation(configurationClass);
     }
 
