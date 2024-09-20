@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class ComponentManagerBasicRealisation implements ComponentManager {
     private final Map<Class<?>, Object> componentsPool = new HashMap<>();
+
     private final ClassFinder classFinder;
 
     public ComponentManagerBasicRealisation(ClassFinder classFinder) {
