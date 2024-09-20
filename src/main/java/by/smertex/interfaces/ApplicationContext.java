@@ -2,12 +2,11 @@ package by.smertex.interfaces;
 
 import by.smertex.annotation.ComponentScan;
 import by.smertex.annotation.Configuration;
-import by.smertex.exception.ComponentScanNotFound;
-import by.smertex.exception.NotConfigurationClass;
+import by.smertex.exception.*;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Optional;
 
 public interface ApplicationContext {
     Object getComponent(Class<?> clazz);
@@ -22,10 +21,28 @@ public interface ApplicationContext {
             throw new ComponentScanNotFound(new RuntimeException());
     }
 
-    static Optional<Method> findMethodForCreateInstanceInCfg(Class<?> clazz, Object cfg){
-        return Arrays.stream(cfg.getClass().getDeclaredMethods())
-                .filter(method -> method.getDeclaredAnnotation(by.smertex.annotation.Constructor.class) != null)
-                .filter(method -> method.getReturnType().equals(clazz))
-                .findFirst();
+    static Object invokeCfgMethod(Object configurationClass, Method method){
+        try {
+            return method.invoke(configurationClass);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new CreateInstanceInCfgException(e);
+        }
+    }
+
+    static Object createNewInstance(Class<?> clazz){
+        try {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new CreateInstanceBasicConstructorException(e);
+        }
+    }
+
+    static void setDependency(Object component, Object instance, Field field){
+        field.setAccessible(true);
+        try {
+            field.set(component, instance);
+        } catch (IllegalAccessException e) {
+            throw new DependencyInjectionException(e);
+        }
     }
 }

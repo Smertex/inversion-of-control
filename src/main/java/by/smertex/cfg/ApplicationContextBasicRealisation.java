@@ -6,7 +6,6 @@ import by.smertex.annotation.NotSingleton;
 import by.smertex.interfaces.ApplicationContext;
 import by.smertex.interfaces.ComponentManager;
 import by.smertex.interfaces.ConfigurationClassManager;
-import by.smertex.utils.ClassUtil;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -46,16 +45,16 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
 
     private Object createInstance(Class<?> clazz){
         return configurationClassManager.getConstructorMethod(clazz) != null ?
-                ClassUtil.invokeExceptionHandler(configurationClassManager.getConfigurationClass(),
+                ApplicationContext.invokeCfgMethod(configurationClassManager.getConfigurationClass(),
                         configurationClassManager.getConstructorMethod(clazz))
-                : ClassUtil.createNewInstance(clazz);
+                : ApplicationContext.createNewInstance(clazz);
     }
 
     @Override
     public void inject(Object component) {
         Arrays.stream(component.getClass().getDeclaredFields())
                 .filter(field -> field.getDeclaredAnnotation(Dependent.class) != null)
-                .forEach(field -> ClassUtil.setDependency(component,
+                .forEach(field -> ApplicationContext.setDependency(component,
                                                           getComponent(field.getDeclaredAnnotation(Dependent.class).component()),
                                                           field));
     }
