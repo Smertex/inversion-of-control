@@ -20,7 +20,7 @@ public class ComponentManagerBasicRealisation implements ComponentManager {
     private void init() {
         List<Class<?>> classesInProject = classFinder.getClasses();
         classesInProject.stream()
-                .filter(ComponentManager::isComponentClass)
+                .filter(this::isComponentClass)
                 .forEach(clazz -> componentsPool.put(clazz, null));
     }
 

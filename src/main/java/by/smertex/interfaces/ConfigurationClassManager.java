@@ -9,7 +9,7 @@ public interface ConfigurationClassManager {
 
     Object getConfigurationClass();
 
-    static void configurationRepeatingMethod(){
+    default void configurationRepeatingMethod(){
         throw new ConfigurationRepeatingMethodException(new RuntimeException());
     }
 }

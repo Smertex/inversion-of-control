@@ -22,7 +22,7 @@ public class ConfigurationClassManagerBasicRealisation implements ConfigurationC
         Arrays.stream(configurationClass.getClass().getDeclaredMethods())
                 .filter(method -> method.getDeclaredAnnotation(Constructor.class) != null)
                 .forEach(method -> {
-                    if(constructorMethods.containsKey(method.getReturnType())) ConfigurationClassManager.configurationRepeatingMethod();
+                    if(constructorMethods.containsKey(method.getReturnType())) configurationRepeatingMethod();
                     constructorMethods.put(method.getReturnType(), method);
                 });
     }

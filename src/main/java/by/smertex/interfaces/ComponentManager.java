@@ -11,12 +11,12 @@ public interface ComponentManager {
 
     Map<Class<?>, Object> getComponentPool();
 
-    static boolean isComponentClass(Class<?> clazz){
+    default boolean isComponentClass(Class<?> clazz){
         return Arrays.stream(clazz.getDeclaredAnnotations())
-                .anyMatch(ComponentManager::isComponentAnnotation);
+                .anyMatch(this::isComponentAnnotation);
     }
 
-    static boolean isComponentAnnotation(Annotation annotation){
+    default boolean isComponentAnnotation(Annotation annotation){
         return annotation.annotationType().equals(Component.class) ||
                annotation.annotationType().getDeclaredAnnotation(Component.class) != null;
     }

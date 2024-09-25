@@ -51,14 +51,14 @@ public class ClassFinderBasicRealisation implements ClassFinder {
     private List<Class<?>> findClassInDirectory(List<String> objects, String componentPath){
          return objects.stream()
                  .filter(line -> line.endsWith(".class"))
-                 .map(clazz -> ClassFinder.pathToClass(ClassFinder.mergeClassPath(componentPath, clazz)))
+                 .map(clazz -> pathToClass(mergeClassPath(componentPath, clazz)))
                  .collect(Collectors.toList());
     }
 
     private List<Class<?>> recursiveTraversal(List<String> objects, String componentPath){
          return objects.stream()
                 .filter(line -> !line.contains("."))
-                .map(directory -> findClasses(ClassFinder.pathMerging(componentPath, directory)))
+                .map(directory -> findClasses(pathMerging(componentPath, directory)))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }

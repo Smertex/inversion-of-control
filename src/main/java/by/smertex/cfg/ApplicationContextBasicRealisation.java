@@ -18,7 +18,7 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
     private ConfigurationClassManager configurationClassManager;
 
     public ApplicationContextBasicRealisation(Object configurationClass){
-        ApplicationContext.validationConfigurationClass(configurationClass);
+        validationConfigurationClass(configurationClass);
         initApplicationContext(configurationClass);
         initComponents();
         initDependency();
@@ -44,15 +44,16 @@ public class ApplicationContextBasicRealisation implements ApplicationContext {
 
     private Object createInstance(Class<?> clazz){
         return configurationClassManager.getConstructorMethod(clazz) != null ?
-                ApplicationContext.invokeCfgMethod(configurationClassManager.getConfigurationClass(),
-                        configurationClassManager.getConstructorMethod(clazz)) : ApplicationContext.createNewInstance(clazz);
+                invokeCfgMethod(configurationClassManager.getConfigurationClass(),
+                        configurationClassManager.getConstructorMethod(clazz)) : createNewInstance(clazz);
     }
+
 
     @Override
     public void inject(Object component) {
         Arrays.stream(component.getClass().getDeclaredFields())
                 .filter(field -> field.getDeclaredAnnotation(Dependent.class) != null)
-                .forEach(field -> ApplicationContext.setDependency(component,
+                .forEach(field -> setDependency(component,
                                                           getComponent(field.getDeclaredAnnotation(Dependent.class).component()),
                                                           field));
     }

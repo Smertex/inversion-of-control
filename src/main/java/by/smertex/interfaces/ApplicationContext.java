@@ -13,7 +13,7 @@ public interface ApplicationContext {
 
     void inject(Object component);
 
-    static void validationConfigurationClass(Object configurationClass){
+    default void validationConfigurationClass(Object configurationClass){
         Class<?> clazz = configurationClass.getClass();
         if(clazz.getDeclaredAnnotation(Configuration.class) == null)
             throw new NotConfigurationClass(new RuntimeException());
@@ -21,7 +21,7 @@ public interface ApplicationContext {
             throw new ComponentScanNotFound(new RuntimeException());
     }
 
-    static Object invokeCfgMethod(Object configurationClass, Method method){
+    default Object invokeCfgMethod(Object configurationClass, Method method){
         try {
             return method.invoke(configurationClass);
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -29,7 +29,7 @@ public interface ApplicationContext {
         }
     }
 
-    static Object createNewInstance(Class<?> clazz){
+    default Object createNewInstance(Class<?> clazz){
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -37,7 +37,7 @@ public interface ApplicationContext {
         }
     }
 
-    static void setDependency(Object component, Object instance, Field field){
+    default void setDependency(Object component, Object instance, Field field){
         field.setAccessible(true);
         try {
             field.set(component, instance);
